@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is the total revenue and profit across the whole dataset?",
+    "reference_answer": "Total revenue is $6,014,960.84 with total profit of $2,121,233.69, an overall margin of 35.27%, across 6,000 orders from 2,621 unique customers."
+  },
+  {
+    "question": "Which product category performs best and what is its revenue share?",
+    "reference_answer": "Laptops is the best-performing category, contributing $4,776,534.18 in revenue, which is 79.41% of total revenue, at a 35.34% profit margin."
+  },
+  {
+    "question": "Which customer segment generates the most revenue?",
+    "reference_answer": "The Small Business segment generates the most revenue at $1,838,347.48 (30.56% of total) from 1,431 unique customers."
+  },
+  {
+    "question": "Which country/region is the top performing market?",
+    "reference_answer": "The USA in the North America region is the top market, generating $1,035,235.02 in revenue (17.21% of the global total) with an average order value of $992.56."
+  },
+  {
+    "question": "What is the mean and standard deviation of unit price?",
+    "reference_answer": "The mean unit price is $493.35 with a standard deviation of $639.82; the median is much lower at $192.54, indicating a right-skewed distribution (skewness 1.556)."
+  }
+]

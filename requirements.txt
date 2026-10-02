@@ -1,0 +1,37 @@
+# ==============================================================================
+# InsightForge — AI-Powered Business Intelligence Assistant
+# Core dependencies (pinned to modern, stable 2026 releases)
+# ==============================================================================
+
+# --- Data processing -----------------------------------------------------
+pandas>=2.2.2
+numpy>=1.26.4
+
+# --- LLM orchestration (LangChain 1.x line, LCEL + LangGraph) -------------
+langchain>=1.2.0
+langchain-core>=1.6.3
+langchain-community>=0.4.0
+langgraph>=1.1.0
+
+# Model providers (enable whichever you have API keys for; OpenAI is default)
+langchain-openai>=1.6.2
+langchain-anthropic>=0.4.0
+
+# --- Retrieval / Vector store ----------------------------------------------
+chromadb>=0.5.0
+tiktoken>=0.12.0
+
+# --- Evaluation & Observability -------------------------------------------
+langsmith>=0.2.0
+
+# --- Visualization & UI ----------------------------------------------------
+streamlit>=1.53.1
+plotly>=6.5.0
+
+# --- Utilities --------------------------------------------------------------
+python-dotenv>=1.0.1
+pydantic>=2.12.5
+pydantic-settings>=2.10.1
+
+# --- Testing ------------------------------------------------------------
+pytest>=8.3.0

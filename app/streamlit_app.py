@@ -81,15 +81,22 @@ st.markdown(
         height: 0 !important;
         visibility: hidden !important;
     }
-    /* Collapse the top padding that was reserved for the (now hidden) header. */
-    div[data-testid="stAppViewContainer"] > .main .block-container,
-    div[data-testid="stAppViewBlockContainer"],
-    section.stMain .block-container,
-    section[data-testid="stMain"] .block-container,
-    .main .block-container {
-        padding-top: 0.6rem !important;
+    /* Reduce the gap above the page. The selectors name the element by its data-testid / class only (not by
+       tag), because Streamlit changed the main area from <section> to <main>; tag-specific selectors stopped
+       matching and the default 6rem (96px) top padding came back. */
+    [data-testid="stMainBlockContainer"],
+    .stMainBlockContainer,
+    [data-testid="stAppViewBlockContainer"],
+    .block-container {
+        padding-top: 1rem !important;
         padding-bottom: 1rem !important;
         max-width: 100% !important;
+    }
+    /* The <style> block that holds this CSS is itself an (invisible) Streamlit element, and Streamlit puts a
+       1rem gap after every element, which showed up as extra blank space above the panels. Hide that element.
+       (The banner's own markdown also contains a <style>, so it is excluded.) */
+    [data-testid="stElementContainer"]:has(style):not(:has(.insightforge-banner)) {
+        display: none !important;
     }
     div[data-testid="stAppViewContainer"] .block-container > div:first-child {
         margin-top: 0 !important;
@@ -368,7 +375,7 @@ def show_risk_mitigation():
 # ---------------------------------------------------------------------------
 # Two fixed panels: LEFT = controls, RIGHT = content
 # ---------------------------------------------------------------------------
-left, right = st.columns([1, 3.4], gap="medium")
+left, right = st.columns([1.6, 3.4], gap="medium")
 
 # ============================== LEFT PANEL ==============================
 with left:

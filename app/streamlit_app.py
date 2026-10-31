@@ -1,6 +1,11 @@
 """
 InsightForge — AI-Powered Business Intelligence Assistant
-Streamlit UI (Part 2, Step 7).
+Streamlit UI (Part 2, Step 7) — fixed two-panel layout.
+
+Layout: a LEFT control panel (title, mode note, info links, filters) and a RIGHT content panel
+(banner, KPIs, tabs). Both panels are always visible: there is no collapsible sidebar and no
+collapse arrow, so the page looks the same in Chrome, Edge and at any zoom level.
+
 Run with (from project root):
     streamlit run app.py
 or directly:
@@ -56,9 +61,13 @@ options = _filter_options(df_full)
 # ---------------------------------------------------------------------------
 # Global styling
 # ---------------------------------------------------------------------------
+# The left panel is an ordinary keyed container (key="left_panel"). Streamlit adds the CSS class
+# "st-key-left_panel" to it, which is what the rules below target.
 st.markdown(
     """
     <style>
+    /* Hide Streamlit's own top chrome (menu, toolbar, decoration, deploy button). This is safe here
+       because the app has no sidebar, so nothing needs the "reopen sidebar" button that lives in the toolbar. */
     #MainMenu,
     header[data-testid="stHeader"],
     header.stAppHeader,
@@ -72,34 +81,44 @@ st.markdown(
         height: 0 !important;
         visibility: hidden !important;
     }
+    /* Collapse the top padding that was reserved for the (now hidden) header. */
     div[data-testid="stAppViewContainer"] > .main .block-container,
     div[data-testid="stAppViewBlockContainer"],
     section.stMain .block-container,
     section[data-testid="stMain"] .block-container,
     .main .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 0.6rem !important;
         padding-bottom: 1rem !important;
         max-width: 100% !important;
-    }
-    section[data-testid="stSidebar"] .block-container,
-    section[data-testid="stSidebar"] div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0.5rem !important;
     }
     div[data-testid="stAppViewContainer"] .block-container > div:first-child {
         margin-top: 0 !important;
     }
     div[data-testid="stMetric"] { padding: 0.15rem 0 !important; }
     hr { margin: 0.5rem 0 !important; }
-    section[data-testid="stSidebar"] div[data-testid="stAlert"] {
+
+    /* ---------------- LEFT PANEL ---------------- */
+    .st-key-left_panel {
+        background: #F0F2F6;
+        border: 1px solid #DCE3EE;
+        border-radius: 12px;
+        padding: 0.9rem 1rem 1rem 1rem;
+    }
+    .st-key-left_panel,
+    .st-key-left_panel div[data-testid="stVerticalBlock"] {
+        gap: 0.15rem !important;
+    }
+    .st-key-left_panel div[data-testid="stAlert"] {
         padding: 0.35rem 0.6rem !important;
         margin-bottom: 0.4rem !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stAlert"] p {
+    .st-key-left_panel div[data-testid="stAlert"] p {
         font-size: 0.78rem !important;
         line-height: 1.3 !important;
         margin: 0 !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+    /* "Learn more" info links: clean, italic hyperlinks instead of boxed buttons. */
+    .st-key-left_panel div[data-testid="stButton"] > button {
         display: block !important;
         background: transparent;
         border: none;
@@ -113,28 +132,34 @@ st.markdown(
         width: 100%;
         box-shadow: none;
     }
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button div,
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button p,
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button span {
+    .st-key-left_panel div[data-testid="stButton"] > button div,
+    .st-key-left_panel div[data-testid="stButton"] > button p,
+    .st-key-left_panel div[data-testid="stButton"] > button span {
         text-align: left !important;
         justify-content: flex-start !important;
         display: block !important;
         width: 100%;
         font-style: italic !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stButton"] {
+    .st-key-left_panel div[data-testid="stButton"] {
         margin-bottom: -1.1rem !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+    .st-key-left_panel div[data-testid="stButton"] > button:hover {
         color: #2E5C99;
         text-decoration: underline;
         background: transparent;
     }
-    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:focus:not(:active) {
+    .st-key-left_panel div[data-testid="stButton"] > button:focus:not(:active) {
         color: #1F3864;
         border: none;
         box-shadow: none;
     }
+    .st-key-left_panel h3 {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    /* Popup (st.dialog) modals: cap the width and scroll long content. */
     div[role="dialog"] {
         max-width: 620px !important;
         width: 92vw !important;
@@ -142,94 +167,13 @@ st.markdown(
         overflow-y: auto !important;
         margin: auto !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
-        gap: 0.15rem !important;
-    }
-    section[data-testid="stSidebar"] h3 {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.2rem !important;
-    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 # ---------------------------------------------------------------------------
-# Hero Banner
-# ---------------------------------------------------------------------------
-st.markdown(
-    """
-    <style>
-    .insightforge-banner {
-        background: linear-gradient(135deg, #0F2C59 0%, #1F3864 45%, #2E5C99 100%);
-        padding: 0.6rem 1.2rem;
-        border-radius: 10px;
-        margin-top: 0.55rem;
-        margin-bottom: 0.7rem;
-        box-shadow: 0 3px 10px rgba(15, 44, 89, 0.22);
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .insightforge-banner h1 {
-        color: #FFFFFF;
-        font-size: 1.15rem;
-        font-weight: 800;
-        margin: 0 0 0.2rem 0;
-        line-height: 1.25;
-    }
-    .insightforge-banner .subtitle {
-        color: #E8EFFC;
-        font-size: 0.7rem;
-        font-weight: 500;
-        margin: 0 0 0.35rem 0;
-        line-height: 1.4;
-    }
-    .insightforge-badges {
-        display: flex;
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        gap: 0.35rem;
-        width: 100%;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-    .insightforge-badges::-webkit-scrollbar { display: none; }
-    .insightforge-badges span {
-        background: rgba(255, 255, 255, 0.14);
-        border: 1px solid rgba(255, 255, 255, 0.38);
-        color: #FFFFFF;
-        font-size: 0.58rem;
-        font-weight: 600;
-        padding: 0.16rem 0.55rem;
-        border-radius: 999px;
-        white-space: nowrap;
-        flex: 0 0 auto;
-    }
-    </style>
-    <div class="insightforge-banner">
-        <h1>📊 InsightForge: AI-Powered Business Intelligence Assistant</h1>
-        <p class="subtitle">
-            InsightForge turns fragmented enterprise data into instant, AI-grounded answers —
-            eliminating the need for dedicated analysts, SQL skills, or costly BI licenses.
-            <strong>A trendsetter by design</strong>, it accelerates decisions, cuts cost-to-insight,
-            and delivers secure, scalable, enterprise-grade intelligence to every business user.
-        </p>
-        <div class="insightforge-badges">
-            <span>⚡ Faster Speed to Decision</span>
-            <span>💰 Cost Optimization</span>
-            <span>🖱️ Extremely User-Friendly</span>
-            <span>📈 Scalable</span>
-            <span>🛡️ Reliable</span>
-            <span>🧩 Extensible</span>
-            <span>🏎️ Fast</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ---------------------------------------------------------------------------
-# Dialog (modal popup) content for the 5 sidebar info links
+# Dialog (modal popup) content for the 5 info links in the left panel
 # ---------------------------------------------------------------------------
 @st.dialog("Why InsightForge?")
 def show_why_insightforge():
@@ -422,55 +366,59 @@ def show_risk_mitigation():
         )
 
 # ---------------------------------------------------------------------------
-# Sidebar
+# Two fixed panels: LEFT = controls, RIGHT = content
 # ---------------------------------------------------------------------------
-with st.sidebar:
-    st.markdown(
-        '<div style="font-size:2.2rem; font-weight:700; margin:0; line-height:1.1;">'
-        '📊 InsightForge</div>'
-        '<div style="font-size:0.85rem; color:#6B7280; font-weight:500; '
-        'margin:0.3rem 0 0.7rem 0; line-height:1.3;">'
-        'AI-Powered Business Intelligence Assistant</div>',
-        unsafe_allow_html=True,
-    )
-    mode = insight_app.chain.mode
-    if mode == "llm":
-        st.success(f"✅ Smart Mode Active ({settings.insightforge_llm_provider})")
-    else:
+left, right = st.columns([1, 3.4], gap="medium")
+
+# ============================== LEFT PANEL ==============================
+with left:
+    with st.container(key="left_panel"):
         st.markdown(
-            '<div style="background-color:#e7f3fe; padding:0.75rem 1rem; border-radius:0.5rem; '
-            'border-left:4px solid #2196F3; font-size:0.7rem; text-align:justify; '
-            'margin-bottom:0.8rem;">'
-            '⚡ <strong>Live Mode</strong> — Ask anything and get an instant, accurate '
-            'answer calculated directly from your real data (no AI subscription needed '
-            'to get started). Use the hyperlinks below to learn more about InsightForge '
-            'and how it works. Also use the filters below to narrow down the data.'
-            '</div>',
+            '<div style="font-size:2.2rem; font-weight:700; margin:0; line-height:1.1;">'
+            '📊 InsightForge</div>'
+            '<div style="font-size:0.85rem; color:#6B7280; font-weight:500; '
+            'margin:0.3rem 0 0.7rem 0; line-height:1.3;">'
+            'AI-Powered Business Intelligence Assistant</div>',
             unsafe_allow_html=True,
         )
-    st.markdown(
-        '<div style="font-weight:700; margin:0.5rem 0 0.4rem 0;">Learn more:</div>',
-        unsafe_allow_html=True,
-    )
-    if st.button("🔍 Why InsightForge?", key="link_why", width='stretch'):
-        show_why_insightforge()
-    if st.button("💼 Business Benefits", key="link_benefits", width='stretch'):
-        show_business_benefits()
-    if st.button("🔐 How secure is it?", key="link_security", width='stretch'):
-        show_security()
-    if st.button("🗺️ Future Roadmap", key="link_roadmap", width='stretch'):
-        show_roadmap()
-    if st.button("⚖️ Impact or Risk - Mitigation Strategy", key="link_risk", width='stretch'):
-        show_risk_mitigation()
-    st.divider()
-    st.subheader("Filters")
-    sel_regions = st.multiselect("Region", options["regions"], default=options["regions"])
-    sel_categories = st.multiselect("Product category", options["categories"], default=options["categories"])
-    sel_segments = st.multiselect("Customer segment", options["segments"], default=options["segments"])
-    min_d, max_d = df_full["order_date"].min().date(), df_full["order_date"].max().date()
-    date_range = st.date_input("Date range", value=(min_d, max_d), min_value=min_d, max_value=max_d)
-    st.divider()
-    st.caption(f"Dataset: {settings.data_path.name} · {len(df_full):,} transaction rows")
+        mode = insight_app.chain.mode
+        if mode == "llm":
+            st.success(f"✅ Smart Mode Active ({settings.insightforge_llm_provider})")
+        else:
+            st.markdown(
+                '<div style="background-color:#e7f3fe; padding:0.75rem 1rem; border-radius:0.5rem; '
+                'border-left:4px solid #2196F3; font-size:0.7rem; text-align:justify; '
+                'margin-bottom:0.8rem;">'
+                '⚡ <strong>Live Mode</strong> — Ask anything and get an instant, accurate '
+                'answer calculated directly from your real data (no AI subscription needed '
+                'to get started). Use the hyperlinks below to learn more about InsightForge '
+                'and how it works. Also use the filters below to narrow down the data.'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+        st.markdown(
+            '<div style="font-weight:700; margin:0.5rem 0 0.4rem 0;">Learn more:</div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("🔍 Why InsightForge?", key="link_why", width='stretch'):
+            show_why_insightforge()
+        if st.button("💼 Business Benefits", key="link_benefits", width='stretch'):
+            show_business_benefits()
+        if st.button("🔐 How secure is it?", key="link_security", width='stretch'):
+            show_security()
+        if st.button("🗺️ Future Roadmap", key="link_roadmap", width='stretch'):
+            show_roadmap()
+        if st.button("⚖️ Impact or Risk - Mitigation Strategy", key="link_risk", width='stretch'):
+            show_risk_mitigation()
+        st.divider()
+        st.subheader("Filters")
+        sel_regions = st.multiselect("Region", options["regions"], default=options["regions"])
+        sel_categories = st.multiselect("Product category", options["categories"], default=options["categories"])
+        sel_segments = st.multiselect("Customer segment", options["segments"], default=options["segments"])
+        min_d, max_d = df_full["order_date"].min().date(), df_full["order_date"].max().date()
+        date_range = st.date_input("Date range", value=(min_d, max_d), min_value=min_d, max_value=max_d)
+        st.divider()
+        st.caption(f"Dataset: {settings.data_path.name} · {len(df_full):,} transaction rows")
 
 # Apply filters (view-level only; the RAG chain always answers over full data
 # so retrieved statistics remain consistent with the narrative answers).
@@ -487,127 +435,200 @@ df_view = df_full[mask]
 from src.analysis.summary_stats import build_full_analysis
 view_analysis = build_full_analysis(df_view) if len(df_view) else insight_app.analysis
 
-# ---------------------------------------------------------------------------
-# KPI Header
-# ---------------------------------------------------------------------------
-st.caption(
-    "Ask questions in plain language and get grounded, cited answers backed "
-    "by real statistical analysis of your business data."
-)
-totals = view_analysis["totals"]
-k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("Total Revenue", f"${totals['total_revenue']:,.0f}")
-k2.metric("Total Profit", f"${totals['total_profit']:,.0f}")
-k3.metric("Margin", f"{totals['overall_margin_pct']:.1f}%")
-k4.metric("Orders", f"{totals['total_orders']:,}")
-k5.metric("Customers", f"{totals['total_customers']:,}")
-st.divider()
-
-tab_chat, tab_dashboard, tab_eval, tab_data = st.tabs(
-    ["💬 Ask InsightForge", "📈 Dashboards", "🧪 Model Evaluation", "🗂️ Data Explorer"]
-)
-
-# ---------------------------------------------------------------------------
-# Tab 1: Chat / RAG assistant
-# ---------------------------------------------------------------------------
-with tab_chat:
-    st.subheader("Ask a business question")
-    st.caption(
-        "Examples: *\"How did revenue trend over the last few quarters?\"*, "
-        "*\"Which product category is most profitable?\"*, "
-        "*\"What's the standard deviation of unit price?\"*"
+# ============================== RIGHT PANEL ==============================
+with right:
+    # ---- Hero banner ----
+    st.markdown(
+        """
+        <style>
+        .insightforge-banner {
+            background: linear-gradient(135deg, #0F2C59 0%, #1F3864 45%, #2E5C99 100%);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            margin-top: 0;
+            margin-bottom: 0.7rem;
+            box-shadow: 0 3px 10px rgba(15, 44, 89, 0.22);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .insightforge-banner h1 {
+            color: #FFFFFF;
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin: 0 0 0.2rem 0;
+            line-height: 1.25;
+            padding: 0;
+        }
+        .insightforge-banner .subtitle {
+            color: #E8EFFC;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin: 0 0 0.35rem 0;
+            line-height: 1.4;
+        }
+        .insightforge-badges {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            gap: 0.35rem;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .insightforge-badges::-webkit-scrollbar { display: none; }
+        .insightforge-badges span {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.38);
+            color: #FFFFFF;
+            font-size: 0.58rem;
+            font-weight: 600;
+            padding: 0.16rem 0.55rem;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        </style>
+        <div class="insightforge-banner">
+            <h1>📊 InsightForge: AI-Powered Business Intelligence Assistant</h1>
+            <p class="subtitle">
+                InsightForge turns fragmented enterprise data into instant, AI-grounded answers —
+                eliminating the need for dedicated analysts, SQL skills, or costly BI licenses.
+                <strong>A trendsetter by design</strong>, it accelerates decisions, cuts cost-to-insight,
+                and delivers secure, scalable, enterprise-grade intelligence to every business user.
+            </p>
+            <div class="insightforge-badges">
+                <span>⚡ Faster Speed to Decision</span>
+                <span>💰 Cost Optimization</span>
+                <span>🖱️ Extremely User-Friendly</span>
+                <span>📈 Scalable</span>
+                <span>🛡️ Reliable</span>
+                <span>🧩 Extensible</span>
+                <span>🏎️ Fast</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-    for turn in st.session_state.chat_history:
-        with st.chat_message("user"):
-            st.write(turn["question"])
-        with st.chat_message("assistant"):
-            st.write(turn["answer"])
-            with st.expander(f"View {len(turn['facts'])} retrieved source facts"):
-                for f in turn["facts"]:
-                    st.caption(f"**[{f.category}]** (score {f.score}) {f.text}")
-    question = st.chat_input("Ask InsightForge about your business data...")
-    if question:
-        with st.chat_message("user"):
-            st.write(question)
-        with st.chat_message("assistant"):
-            with st.spinner("Retrieving facts and composing an answer..."):
-                response = insight_app.chain.ask(question)
-            st.write(response.answer)
-            with st.expander(f"View {len(response.retrieved_facts)} retrieved source facts"):
-                for f in response.retrieved_facts:
-                    st.caption(f"**[{f.category}]** (score {f.score}) {f.text}")
-        st.session_state.chat_history.append({
-            "question": question, "answer": response.answer, "facts": response.retrieved_facts,
-        })
-    if st.session_state.chat_history:
-        if st.button("Clear conversation"):
+
+    # ---- KPI header ----
+    st.caption(
+        "Ask questions in plain language and get grounded, cited answers backed "
+        "by real statistical analysis of your business data."
+    )
+    totals = view_analysis["totals"]
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Total Revenue", f"${totals['total_revenue']:,.0f}")
+    k2.metric("Total Profit", f"${totals['total_profit']:,.0f}")
+    k3.metric("Margin", f"{totals['overall_margin_pct']:.1f}%")
+    k4.metric("Orders", f"{totals['total_orders']:,}")
+    k5.metric("Customers", f"{totals['total_customers']:,}")
+    st.divider()
+
+    tab_chat, tab_dashboard, tab_eval, tab_data = st.tabs(
+        ["💬 Ask InsightForge", "📈 Dashboards", "🧪 Model Evaluation", "🗂️ Data Explorer"]
+    )
+
+    # -----------------------------------------------------------------------
+    # Tab 1: Chat / RAG assistant
+    # -----------------------------------------------------------------------
+    with tab_chat:
+        st.subheader("Ask a business question")
+        st.caption(
+            "Examples: *\"How did revenue trend over the last few quarters?\"*, "
+            "*\"Which product category is most profitable?\"*, "
+            "*\"What's the standard deviation of unit price?\"*"
+        )
+        if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
-            insight_app.chain.memory.clear()
-            st.rerun()
+        for turn in st.session_state.chat_history:
+            with st.chat_message("user"):
+                st.write(turn["question"])
+            with st.chat_message("assistant"):
+                st.write(turn["answer"])
+                with st.expander(f"View {len(turn['facts'])} retrieved source facts"):
+                    for f in turn["facts"]:
+                        st.caption(f"**[{f.category}]** (score {f.score}) {f.text}")
+        question = st.chat_input("Ask InsightForge about your business data...")
+        if question:
+            with st.chat_message("user"):
+                st.write(question)
+            with st.chat_message("assistant"):
+                with st.spinner("Retrieving facts and composing an answer..."):
+                    response = insight_app.chain.ask(question)
+                st.write(response.answer)
+                with st.expander(f"View {len(response.retrieved_facts)} retrieved source facts"):
+                    for f in response.retrieved_facts:
+                        st.caption(f"**[{f.category}]** (score {f.score}) {f.text}")
+            st.session_state.chat_history.append({
+                "question": question, "answer": response.answer, "facts": response.retrieved_facts,
+            })
+        if st.session_state.chat_history:
+            if st.button("Clear conversation"):
+                st.session_state.chat_history = []
+                insight_app.chain.memory.clear()
+                st.rerun()
 
-# ---------------------------------------------------------------------------
-# Tab 2: Visual dashboards
-# ---------------------------------------------------------------------------
-with tab_dashboard:
-    st.subheader("Sales Trends")
-    st.plotly_chart(plots.sales_trend_chart(view_analysis["monthly_trend"]), width='stretch')
-    c1, c2 = st.columns(2)
-    with c1:
-        st.plotly_chart(plots.product_performance_chart(view_analysis["top_products"]), width='stretch')
-    with c2:
-        st.plotly_chart(plots.category_share_chart(view_analysis["category_performance"]), width='stretch')
-    c3, c4 = st.columns(2)
-    with c3:
-        st.plotly_chart(plots.regional_analysis_chart(view_analysis["regional_analysis"]), width='stretch')
-    with c4:
-        st.plotly_chart(plots.customer_segmentation_chart(view_analysis["customer_segmentation"]), width='stretch')
-    st.subheader("Statistical Distributions")
-    metric_choice = st.selectbox("Metric", ["revenue", "profit", "unit_price", "units_sold"])
-    st.plotly_chart(plots.statistical_distribution_chart(df_view if len(df_view) else df_full, metric_choice), width='stretch')
-    with st.expander("📐 Full statistical summary table"):
-        stats_df = pd.DataFrame(view_analysis["statistical_summary"]).T
-        st.dataframe(stats_df, width='stretch')
+    # -----------------------------------------------------------------------
+    # Tab 2: Visual dashboards
+    # -----------------------------------------------------------------------
+    with tab_dashboard:
+        st.subheader("Sales Trends")
+        st.plotly_chart(plots.sales_trend_chart(view_analysis["monthly_trend"]), width='stretch')
+        c1, c2 = st.columns(2)
+        with c1:
+            st.plotly_chart(plots.product_performance_chart(view_analysis["top_products"]), width='stretch')
+        with c2:
+            st.plotly_chart(plots.category_share_chart(view_analysis["category_performance"]), width='stretch')
+        c3, c4 = st.columns(2)
+        with c3:
+            st.plotly_chart(plots.regional_analysis_chart(view_analysis["regional_analysis"]), width='stretch')
+        with c4:
+            st.plotly_chart(plots.customer_segmentation_chart(view_analysis["customer_segmentation"]), width='stretch')
+        st.subheader("Statistical Distributions")
+        metric_choice = st.selectbox("Metric", ["revenue", "profit", "unit_price", "units_sold"])
+        st.plotly_chart(plots.statistical_distribution_chart(df_view if len(df_view) else df_full, metric_choice), width='stretch')
+        with st.expander("📐 Full statistical summary table"):
+            stats_df = pd.DataFrame(view_analysis["statistical_summary"]).T
+            st.dataframe(stats_df, width='stretch')
 
-# ---------------------------------------------------------------------------
-# Tab 3: LLMOps — model evaluation
-# ---------------------------------------------------------------------------
-with tab_eval:
-    st.subheader("Model Evaluation (QAEvalChain-style grading)")
-    st.caption(
-        "Runs a curated set of question/reference-answer pairs through the "
-        "live RAG chain and grades each prediction for factual accuracy — "
-        "using LangChain's `QAEvalChain` when an LLM is configured, or a "
-        "deterministic numeric-grounding grader in offline mode."
-    )
-    eval_path = PROJECT_ROOT / "eval" / "eval_dataset.json"
-    if st.button("▶ Run evaluation suite", type="primary"):
-        with st.spinner("Running evaluation..."):
-            cases = load_eval_dataset(eval_path)
-            results = run_evaluation(insight_app.chain, cases)
-            summary = summarize_results(results)
-        st.session_state["eval_results"] = results
-        st.session_state["eval_summary"] = summary
-    if "eval_summary" in st.session_state:
-        summary = st.session_state["eval_summary"]
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Accuracy", f"{summary['accuracy_pct']:.1f}%")
-        c2.metric("Correct", summary["correct"])
-        c3.metric("Incorrect", summary["incorrect"])
-        c4.metric("Evaluator", summary["evaluator"])
-        st.dataframe(pd.DataFrame(results_to_dicts(st.session_state["eval_results"])), width='stretch')
+    # -----------------------------------------------------------------------
+    # Tab 3: LLMOps — model evaluation
+    # -----------------------------------------------------------------------
+    with tab_eval:
+        st.subheader("Model Evaluation (QAEvalChain-style grading)")
+        st.caption(
+            "Runs a curated set of question/reference-answer pairs through the "
+            "live RAG chain and grades each prediction for factual accuracy — "
+            "using LangChain's `QAEvalChain` when an LLM is configured, or a "
+            "deterministic numeric-grounding grader in offline mode."
+        )
+        eval_path = PROJECT_ROOT / "eval" / "eval_dataset.json"
+        if st.button("▶ Run evaluation suite", type="primary"):
+            with st.spinner("Running evaluation..."):
+                cases = load_eval_dataset(eval_path)
+                results = run_evaluation(insight_app.chain, cases)
+                summary = summarize_results(results)
+            st.session_state["eval_results"] = results
+            st.session_state["eval_summary"] = summary
+        if "eval_summary" in st.session_state:
+            summary = st.session_state["eval_summary"]
+            e1, e2, e3, e4 = st.columns(4)
+            e1.metric("Accuracy", f"{summary['accuracy_pct']:.1f}%")
+            e2.metric("Correct", summary["correct"])
+            e3.metric("Incorrect", summary["incorrect"])
+            e4.metric("Evaluator", summary["evaluator"])
+            st.dataframe(pd.DataFrame(results_to_dicts(st.session_state["eval_results"])), width='stretch')
 
-# ---------------------------------------------------------------------------
-# Tab 4: Raw data explorer
-# ---------------------------------------------------------------------------
-with tab_data:
-    st.subheader("Filtered transaction data")
-    st.caption(f"{len(df_view):,} of {len(df_full):,} rows match the current sidebar filters.")
-    st.dataframe(df_view, width='stretch', height=460)
-    st.download_button(
-        "⬇ Download filtered data as CSV",
-        data=df_view.to_csv(index=False).encode("utf-8"),
-        file_name="insightforge_filtered_data.csv",
-        mime="text/csv",
-    )
+    # -----------------------------------------------------------------------
+    # Tab 4: Raw data explorer
+    # -----------------------------------------------------------------------
+    with tab_data:
+        st.subheader("Filtered transaction data")
+        st.caption(f"{len(df_view):,} of {len(df_full):,} rows match the current filters.")
+        st.dataframe(df_view, width='stretch', height=460)
+        st.download_button(
+            "⬇ Download filtered data as CSV",
+            data=df_view.to_csv(index=False).encode("utf-8"),
+            file_name="insightforge_filtered_data.csv",
+            mime="text/csv",
+        )

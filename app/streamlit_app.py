@@ -415,7 +415,7 @@ with left:
             show_security()
         if st.button("🗺️ Future Roadmap", key="link_roadmap", width='stretch'):
             show_roadmap()
-        if st.button("⚖️ Impact or Risk - Mitigation Strategy", key="link_risk", width='stretch'):
+        if st.button("⚖️ Risk & Mitigation", key="link_risk", width='stretch'):
             show_risk_mitigation()
         st.divider()
         st.subheader("Filters")

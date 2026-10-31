@@ -347,7 +347,7 @@ def show_risk_mitigation():
     st.markdown(
         """
         <div style="color:#1F3864;font-weight:800;font-size:1rem;margin-bottom:0.4rem;">
-        Risk Register & Mitigation Strategy
+        Risk & Mitigation
         </div>
         """,
         unsafe_allow_html=True,
